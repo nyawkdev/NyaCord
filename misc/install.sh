@@ -5,7 +5,7 @@ INSTALLER_PATH="$HOME/.equilotl"
 GITHUB_URL="https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-Linux"
 PRIVILEGE_CMDS=("sudo" "doas")
 DEBUG=false
-LOG_FILE="$(dirname "$(realpath "$0")")/equicordinstalldebug.log"
+LOG_FILE="$(dirname "$(realpath "$0")")/nyacordinstalldebug.log"
 
 # Colors for output
 RED='\033[0;31m'

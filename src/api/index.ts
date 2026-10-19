@@ -42,6 +42,7 @@ import * as $Styles from "./Styles";
 import * as $SurfaceClasses from "./SurfaceClasses";
 import * as $Themes from "./Themes";
 import * as $UserSettings from "./UserSettings";
+export * as UserPlugins from "./UserPluginLoader";
 
 /**
  * An API allowing you to listen to Message Clicks or run your own logic

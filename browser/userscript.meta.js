@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name            Equicord
+// @name            NyaCord
 // @description     A Discord client mod - Web version
 // @version         %version%
-// @author          Equicord (https://github.com/Equicord)
-// @namespace       https://github.com/Equicord/Equicord
-// @supportURL      https://github.com/Equicord/Equicord
-// @icon            https://raw.githubusercontent.com/Equicord/Equicord/refs/heads/main/browser/icon.png
+// @author          NyaCord (https://github.com/nyawkdev)
+// @namespace       https://github.com/nyawkdev/NyaCord
+// @supportURL      https://github.com/nyawkdev/NyaCord
+// @icon            https://raw.githubusercontent.com/nyawkdev/NyaCord/refs/heads/main/browser/icon.png
 // @license         GPL-3.0
 // @match           *://*.discord.com/*
 // @grant           GM_xmlhttpRequest

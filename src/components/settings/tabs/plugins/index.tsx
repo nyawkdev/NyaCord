@@ -44,10 +44,12 @@ import { JSX } from "react";
 
 import Plugins, { ExcludedPlugins, PluginMeta } from "~plugins";
 
+import { addUserPluginChangeListener, removeUserPluginChangeListener } from "@api/UserPluginLoader";
 import { PluginCard } from "./PluginCard";
 import { openWarningModal } from "./PluginModal";
 import { StockPluginsCard, UserPluginsCard } from "./PluginStatCards";
 import { UIElementsButton } from "./UIElements";
+import { UserPluginQuickActions } from "./UserPluginQuickActions";
 
 export const cl = classNameFactory("vc-plugins-");
 export const logger = new Logger("PluginSettings", "#a6d189");
@@ -114,8 +116,8 @@ export const ExcludedReasons: Record<PluginTarget, string> = {
     vesktop: "Vesktop/Equibop apps",
     equibop: "Vesktop/Equibop apps",
     web: "Vesktop/Equibop apps & Discord web",
-    dev: "Developer version of Equicord",
-    browser: "Web Browser version of Equicord"
+    dev: "Developer version of NyaCord",
+    browser: "Web Browser version of NyaCord"
 };
 
 function ExcludedPluginsList({ search }: { search: string; }) {
@@ -189,13 +191,20 @@ export default function PluginSettings() {
         return o;
     }, []);
 
+    const [, forceUpdate] = useState({});
+    React.useEffect(() => {
+        const onPluginsChanged = () => forceUpdate({});
+        addUserPluginChangeListener(onPluginsChanged);
+        return () => removeUserPluginChangeListener(onPluginsChanged);
+    }, []);
+
     const sortedPlugins = useMemo(() =>
         Object.values(Plugins).sort((a, b) => a.name.localeCompare(b.name)),
-        []
+        [settings.plugins, Object.keys(Plugins).length]
     )
         .toSorted((a, b) => Number(settings.plugins[b.name]?.isFavorite ?? false) - Number(settings.plugins[a.name]?.isFavorite ?? false));
 
-    const hasUserPlugins = useMemo(() => !IS_STANDALONE && Object.values(PluginMeta).some(m => m.userPlugin), []);
+    const hasUserPlugins = useMemo(() => Object.values(PluginMeta).some(m => m?.userPlugin), [Object.keys(PluginMeta).length]);
 
     const [searchValue, setSearchValue] = useState({ value: "", tags: [] as PluginTag[], status: SearchStatus.ALL });
 
@@ -278,7 +287,7 @@ export default function PluginSettings() {
 
             if (isRequired) {
                 const tooltipText = p.required || !depMap[p.name]
-                    ? "This plugin is required for Equicord to function."
+                    ? "This plugin is required for NyaCord to function."
                     : <PluginDependencyList deps={depMap[p.name]?.filter(d => settings.plugins[d].enabled)} />;
 
                 requiredPlugins.push(
@@ -394,6 +403,8 @@ export default function PluginSettings() {
                 />
             </div>
 
+            <UserPluginQuickActions />
+
             <div className={cl("ui-elements")}>
                 <UIElementsButton />
             </div>
@@ -420,7 +431,7 @@ export default function PluginSettings() {
                             { label: "Show Favorites", value: SearchStatus.FAVORITES },
                             { label: "Show Enabled", value: SearchStatus.ENABLED },
                             { label: "Show Disabled", value: SearchStatus.DISABLED },
-                            { label: "Show Equicord", value: SearchStatus.EQUICORD },
+                            { label: "Show NyaCord", value: SearchStatus.EQUICORD },
                             { label: "Show Vencord", value: SearchStatus.VENCORD },
                             { label: "Show New", value: SearchStatus.NEW },
                             hasUserPlugins && { label: "Show UserPlugins", value: SearchStatus.USER_PLUGINS },

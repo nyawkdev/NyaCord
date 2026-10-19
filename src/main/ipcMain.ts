@@ -25,19 +25,20 @@ import { IpcEvents } from "@shared/IpcEvents";
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme, shell, systemPreferences } from "electron";
 import monacoHtml from "file://monacoWin.html?minify&base64";
 import { FSWatcher, mkdirSync, readFileSync, watch, writeFileSync } from "fs";
-import { open, readdir, readFile, unlink } from "fs/promises";
+import { open, readdir, readFile, rm, stat, unlink } from "fs/promises";
 import { release } from "os";
-import { join } from "path";
+import { dirname, join } from "path";
 
 import { registerCspIpcHandlers } from "./csp/manager";
 import { getThemeInfo, stripBOM, UserThemeHeader } from "./themes";
-import { ALLOWED_PROTOCOLS, QUICK_CSS_PATH, SETTINGS_DIR, THEMES_DIR } from "./utils/constants";
+import { ALLOWED_PROTOCOLS, QUICK_CSS_PATH, SETTINGS_DIR, THEMES_DIR, USERPLUGINS_DIR } from "./utils/constants";
 import { ensureSafePath } from "./utils/ensureSafePath";
 import { makeLinksOpenExternally } from "./utils/externalLinks";
 
 const RENDERER_CSS_PATH = join(__dirname, "renderer.css");
 
 mkdirSync(THEMES_DIR, { recursive: true });
+mkdirSync(USERPLUGINS_DIR, { recursive: true });
 
 registerCspIpcHandlers();
 
@@ -110,6 +111,66 @@ ipcMain.handle(IpcEvents.GET_THEME_SYSTEM_VALUES, () => {
 
 ipcMain.handle(IpcEvents.OPEN_THEMES_FOLDER, () => shell.openPath(THEMES_DIR));
 ipcMain.handle(IpcEvents.OPEN_SETTINGS_FOLDER, () => shell.openPath(SETTINGS_DIR));
+ipcMain.handle(IpcEvents.OPEN_USERPLUGINS_FOLDER, () => shell.openPath(USERPLUGINS_DIR));
+
+export interface UserPluginItem {
+    name: string;
+    fileName: string;
+    isDir: boolean;
+}
+
+async function listUserPlugins(): Promise<UserPluginItem[]> {
+    const entries = await readdir(USERPLUGINS_DIR, { withFileTypes: true }).catch(() => []);
+    const plugins: UserPluginItem[] = [];
+
+    for (const entry of entries) {
+        if (entry.name.startsWith(".") || entry.name.startsWith("_")) continue;
+
+        if (entry.isDirectory()) {
+            const subFiles = await readdir(join(USERPLUGINS_DIR, entry.name)).catch(() => []);
+            const entryFile = subFiles.find(f => /^(index|plugin)\.(js|ts|jsx|tsx)$/i.test(f));
+            if (entryFile) {
+                plugins.push({
+                    name: entry.name,
+                    fileName: join(entry.name, entryFile).replace(/\\/g, "/"),
+                    isDir: true
+                });
+            }
+        } else if (/\.(js|ts|jsx|tsx)$/i.test(entry.name)) {
+            plugins.push({
+                name: entry.name.replace(/\.(js|ts|jsx|tsx)$/i, ""),
+                fileName: entry.name,
+                isDir: false
+            });
+        }
+    }
+
+    return plugins;
+}
+
+function getUserPluginData(fileName: string) {
+    const safePath = ensureSafePath(USERPLUGINS_DIR, fileName);
+    if (!safePath) return Promise.reject(`Unsafe path ${fileName}`);
+    return readFile(safePath, "utf-8");
+}
+
+ipcMain.handle(IpcEvents.GET_USERPLUGINS_LIST, () => listUserPlugins());
+ipcMain.handle(IpcEvents.GET_USERPLUGIN_DATA, (_, fileName: string) => getUserPluginData(fileName));
+ipcMain.handle(IpcEvents.SAVE_USERPLUGIN, async (_, fileName: string, content: string) => {
+    const safePath = ensureSafePath(USERPLUGINS_DIR, fileName);
+    if (!safePath) return Promise.reject(`Unsafe path ${fileName}`);
+    mkdirSync(dirname(safePath), { recursive: true });
+    return writeFileSync(safePath, content, "utf-8");
+});
+ipcMain.handle(IpcEvents.DELETE_USERPLUGIN, async (_, fileName: string) => {
+    const safePath = ensureSafePath(USERPLUGINS_DIR, fileName);
+    if (!safePath) return Promise.reject(`Unsafe path ${fileName}`);
+    const fileStat = await stat(safePath).catch(() => null);
+    if (fileStat?.isDirectory()) {
+        return rm(safePath, { recursive: true, force: true });
+    }
+    return unlink(safePath);
+});
 
 let fsWatchers = [] as FSWatcher[];
 
@@ -130,17 +191,22 @@ ipcMain.handle(IpcEvents.INIT_FILE_WATCHERS, ({ sender }) => {
         sender.postMessage(IpcEvents.THEME_UPDATE, void 0);
     }));
 
+    const userpluginsWatcher = watch(USERPLUGINS_DIR, { persistent: false }, debounce(() => {
+        sender.postMessage(IpcEvents.USERPLUGINS_UPDATE, void 0);
+    }, 100));
+
     if (IS_DEV) {
         rendererCssWatcher = watch(RENDERER_CSS_PATH, { persistent: false }, async () => {
             sender.postMessage(IpcEvents.RENDERER_CSS_UPDATE, await readFile(RENDERER_CSS_PATH, "utf-8"));
         });
     }
 
-    fsWatchers = [quickCssWatcher, themesWatcher, rendererCssWatcher].filter(Boolean) as FSWatcher[];
+    fsWatchers = [quickCssWatcher, themesWatcher, userpluginsWatcher, rendererCssWatcher].filter(Boolean) as FSWatcher[];
 
     sender.once("destroyed", () => {
         quickCssWatcher?.close();
         themesWatcher.close();
+        userpluginsWatcher.close();
         rendererCssWatcher?.close();
         fsWatchers = [];
     });

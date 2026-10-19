@@ -5,13 +5,13 @@
  */
 
 import { definePluginSettings } from "@api/Settings";
-import { BackupRestoreIcon, CloudIcon, LogIcon, MainSettingsIcon, PaintbrushIcon, PatchHelperIcon, PluginsIcon, UpdaterIcon } from "@components/Icons";
+import { BackupRestoreIcon, LogIcon, MainSettingsIcon, PaintbrushIcon, PatchHelperIcon, PluginsIcon, SecretIcon, UpdaterIcon } from "@components/Icons";
 import {
     BackupAndRestoreTab,
     ChangelogTab,
-    CloudTab,
     PatchHelperTab,
     PluginsTab,
+    SecretTab,
     ThemesTab,
     UpdaterTab,
     VencordTab,
@@ -110,7 +110,7 @@ const settings = definePluginSettings({
     },
     includeVencordInfoWhenCopying: {
         type: OptionType.BOOLEAN,
-        description: "Also copy Equicord info (Equicord, Electron, Chromium) when clicking the version info in the bottom left area of the Settings page",
+        description: "Also copy NyaCord info (NyaCord, Electron, Chromium) when clicking the version info in the bottom left area of the Settings page",
         default: true
     }
 });
@@ -192,8 +192,8 @@ export default definePlugin({
         const equicordEntries: SettingsLayoutNode[] = [
             buildEntry({
                 key: "equicord_main",
-                title: "Equicord",
-                panelTitle: "Equicord Settings",
+                title: "NyaCord",
+                panelTitle: "NyaCord Settings",
                 Component: VencordTab,
                 Icon: MainSettingsIcon
             }),
@@ -212,7 +212,7 @@ export default definePlugin({
             !IS_UPDATER_DISABLED && UpdaterTab && buildEntry({
                 key: "equicord_updater",
                 title: "Updater",
-                panelTitle: "Equicord Updater",
+                panelTitle: "NyaCord Updater",
                 Component: UpdaterTab,
                 Icon: UpdaterIcon
             }),
@@ -223,11 +223,11 @@ export default definePlugin({
                 Icon: LogIcon,
             }),
             buildEntry({
-                key: "equicord_cloud",
-                title: "Cloud",
-                panelTitle: "Equicord Cloud",
-                Component: CloudTab,
-                Icon: CloudIcon
+                key: "nyacord_secret",
+                title: "NyaCord Secret",
+                panelTitle: "NyaCord Secret",
+                Component: SecretTab,
+                Icon: SecretIcon
             }),
             buildEntry({
                 key: "equicord_backup_restore",
@@ -247,7 +247,7 @@ export default definePlugin({
         const equicordSection: SettingsLayoutNode = {
             key: "equicord_section",
             type: LayoutTypes.SECTION,
-            useTitle: () => "Equicord Settings",
+            useTitle: () => "NyaCord Settings",
             buildLayout: () => equicordEntries
         };
 
@@ -313,7 +313,7 @@ export default definePlugin({
     getInfoRows() {
         const { electronVersion, chromiumVersion, getVersionInfo } = this;
 
-        const rows = [`Equicord ${gitHashShort}${getVersionInfo()}`];
+        const rows = [`NyaCord ${gitHashShort}${getVersionInfo()}`];
 
         if (electronVersion) rows.push(`Electron ${electronVersion}`);
         if (chromiumVersion) rows.push(`Chromium ${chromiumVersion}`);

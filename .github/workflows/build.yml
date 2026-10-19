@@ -1,25 +1,26 @@
-name: Release
+name: Build and Release
 on:
     push:
         branches:
             - main
+        tags:
+            - "v*"
+    workflow_dispatch:
 
 env:
     FORCE_COLOR: true
-    GITHUB_TOKEN: ${{ secrets.ETOKEN }}
-    REPO: Equicord/Equibored
-    USERNAME: GitHub-Actions
 
 permissions:
     contents: write
 
 jobs:
-    Build:
-        name: Build Equicord
+    build-and-release:
+        name: Build and Release NyaCord
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v7
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
             - name: Setup PNPM
               uses: pnpm/setup@v2.1.0
@@ -30,54 +31,51 @@ jobs:
             - name: Build web
               run: pnpm buildWebStandalone
 
-            - name: Build
+            - name: Build desktop
               run: pnpm buildStandalone
 
-            - name: Generate plugin lists
+            - name: Generate plugin metadata
               run: |
                   pnpm generatePluginJson dist/plugins.json
                   pnpm generateEquicordPluginJson dist/equicordplugins.json
                   pnpm generateVencordPluginJson dist/vencordplugins.json
                   pnpm generateDevsList dist/devs.json
 
-            - name: Collect files to be released
+            - name: Package artifacts
               run: |
-                  cd dist
-                  mkdir release
-
-                  cp browser/browser.* release
-                  cp Equicord.user.{js,js.LEGAL.txt} release
-
-                  # copy the plugin data jsons, the extension zips and the desktop/equibop asars
-                  cp *.{json,zip,asar} release
-
-                  # legacy un-asared files
-                  cp desktop/* release
-                  for file in equibop/*; do
-                    filename=$(basename "$file")
-                    cp "$file" "release/equibop${filename^}"
+                  mkdir -p dist/release
+                  cp dist/browser/browser.* dist/release/ 2>/dev/null || true
+                  cp dist/NyaCord.user.* dist/release/ 2>/dev/null || true
+                  cp dist/*.{json,zip,asar} dist/release/ 2>/dev/null || true
+                  cp dist/desktop/* dist/release/ 2>/dev/null || true
+                  for file in dist/equibop/*; do
+                    if [ -f "$file" ]; then
+                      filename=$(basename "$file")
+                      cp "$file" "dist/release/equibop${filename^}"
+                    fi
                   done
+                  find dist/release -size 0 -delete 2>/dev/null || true
+                  rm -f dist/release/package.json
+                  rm -f dist/release/*.map
 
-                  find release -size 0 -delete
-                  rm release/package.json
-                  rm release/*.map
-
-            - name: Upload Equicord Stable
-              if: ${{ vars.ACT == 'false' }}
+            - name: Publish GitHub Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  gh release upload latest --clobber dist/release/*
+                  TAG_NAME="${GITHUB_REF_NAME}"
+                  if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+                    TAG_NAME="latest"
+                  fi
 
-            - name: Upload Plugin JSONs to Equibored repo
-              if: github.repository == 'Equicord/Equicord' && vars.ACT == 'false'
-              run: |
-                  git config --global user.name "GitHub-Actions"
-                  git config --global user.email actions@github.com
-                  git clone https://$USERNAME:$GITHUB_TOKEN@github.com/$REPO.git plugins
-                  cd plugins
+                  echo "Publishing release for tag: $TAG_NAME"
 
-                  cp ../dist/release/*plugins.json .
-                  cp ../dist/release/devs.json .
-                  git add -A
-
-                  git commit -m "Plugins for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
-                  git push --force https://$USERNAME:$GITHUB_TOKEN@github.com/$REPO.git
+                  if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+                    echo "Release $TAG_NAME exists. Uploading assets..."
+                    gh release upload "$TAG_NAME" dist/release/* --clobber
+                  else
+                    echo "Creating new release $TAG_NAME..."
+                    gh release create "$TAG_NAME" dist/release/* \
+                      --title "NyaCord Release ($TAG_NAME)" \
+                      --notes "Automated release build of NyaCord with latest plugins and Secret features." \
+                      --prerelease=false
+                  fi

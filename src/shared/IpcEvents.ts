@@ -54,4 +54,11 @@ export const enum IpcEvents {
     PRELOAD_GET_RENDERER_JS = "VencordPreloadGetRendererJs",
 
     SUPPORTS_WINDOWS_MATERIAL = "VencordSupportsWindowsMaterial",
+
+    OPEN_USERPLUGINS_FOLDER = "VencordOpenUserpluginsFolder",
+    GET_USERPLUGINS_LIST = "VencordGetUserpluginsList",
+    GET_USERPLUGIN_DATA = "VencordGetUserpluginData",
+    SAVE_USERPLUGIN = "VencordSaveUserplugin",
+    DELETE_USERPLUGIN = "VencordDeleteUserplugin",
+    USERPLUGINS_UPDATE = "VencordUserpluginsUpdate",
 }

@@ -1,15 +1,22 @@
 dist
 node_modules
+.vscode
+.idea
 .VSCodeCounter
 .vars
 .secrets
 .input
 
 *.exe
+*.dll
+*.pdb
+bin/
+obj/
 vencord_installer
 equicord_installer
+nyacord_installer
+installer/
 
-.idea
 .DS_Store
 
 yarn.lock

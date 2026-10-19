@@ -29,7 +29,10 @@ export * as Util from "./utils";
 export * as Updater from "./utils/updater";
 export * as Webpack from "./webpack";
 export * as WebpackPatcher from "./webpack/patchWebpack";
-export { PlainSettings, Settings };
+export { default as definePlugin } from "@utils/types";
+export { definePluginSettings, PlainSettings, Settings };
+
+import { initRuntimeUserPlugins } from "@api/UserPluginLoader";
 
 import { enableStyle, initStyles } from "@api/Styles";
 import { openSettingsTabModal, UpdaterTab } from "@components/settings";
@@ -37,12 +40,10 @@ import { debounce } from "@shared/debounce";
 import { StartAt } from "@utils/types";
 import { SettingsRouter } from "@webpack/common";
 
-import { get as dsGet } from "./api/DataStore";
 import { showNotice } from "./api/Notices";
 import { NotificationData, showNotification } from "./api/Notifications";
 import { initPluginManager, PMLogger, startAllPlugins } from "./api/PluginManager";
-import { PlainSettings, Settings, SettingsStore } from "./api/Settings";
-import { areLocalSettingsDirty, getCloudSettings, getCloudSyncDirection, markLocalSettingsDirty, putCloudSettings, shouldCloudSync } from "./api/SettingsSync/cloudSync";
+import { definePluginSettings, PlainSettings, Settings, SettingsStore } from "./api/Settings";
 import { relaunch } from "./utils/native";
 import { checkForUpdates, update, UpdateLogger } from "./utils/updater";
 import { onceReady } from "./webpack";
@@ -51,74 +52,6 @@ import { patches } from "./webpack/patchWebpack";
 if (IS_REPORTER) {
     require("./debug/runReporter");
 }
-
-async function syncSettings() {
-    const hasCloudAuth = await dsGet("Vencord_cloudSecret");
-    if (!hasCloudAuth) {
-        if (Settings.cloud.authenticated) {
-            // User switched to an account that isn't connected to cloud
-            showNotification({
-                title: "Cloud Settings",
-                body: "Cloud sync was disabled because this account isn't connected to the cloud App. You can enable it again by connecting this account in Cloud Settings. (note: it will store your preferences separately)",
-                color: "var(--yellow-360)",
-                onClick: () => SettingsRouter.openUserSettings("equicord_cloud_panel")
-            });
-            // Disable cloud sync globally
-            Settings.cloud.authenticated = false;
-        }
-        return;
-    }
-
-    // pre-check for local shared settings
-    if (
-        Settings.cloud.authenticated &&
-        !hasCloudAuth // this has been enabled due to local settings share or some other bug
-    ) {
-        // show a notification letting them know and tell them how to fix it
-        showNotification({
-            title: "Cloud Integrations",
-            body: "We've noticed you have cloud integrations enabled in another client! Due to limitations, you will " +
-                "need to re-authenticate to continue using them. Click here to go to the settings page to do so!",
-            color: "var(--yellow-360)",
-            onClick: () => SettingsRouter.openUserSettings("equicord_cloud_panel"),
-            noPersist: true
-        });
-        return;
-    }
-
-    if (
-        Settings.cloud.settingsSync && // if it's enabled
-        Settings.cloud.authenticated && // if cloud integrations are enabled
-        getCloudSyncDirection() !== "manual" // if we're not in manual mode
-    ) {
-        if (areLocalSettingsDirty() && shouldCloudSync("push")) {
-            await putCloudSettings();
-        } else if (shouldCloudSync("pull") && await getCloudSettings(false)) { // if we synchronized something (false means no sync)
-            // we show a notification here instead of allowing getCloudSettings() to show one to declutter the amount of
-            // potential notifications that might occur. getCloudSettings() will always send a notification regardless if
-            // there was an error to notify the user, but besides that we only want to show one notification instead of all
-            // of the possible ones it has (such as when your settings are newer).
-            showNotification({
-                title: "Cloud Settings",
-                body: "Your settings have been updated! Click here to restart to fully apply changes!",
-                color: "var(--green-360)",
-                onClick: relaunch
-            });
-        }
-    }
-
-    const saveSettingsOnFrequentAction = debounce(async () => {
-        if (Settings.cloud.settingsSync && Settings.cloud.authenticated && shouldCloudSync("push")) {
-            await putCloudSettings();
-        }
-    }, 60_000);
-
-    SettingsStore.addGlobalChangeListener(() => {
-        markLocalSettingsDirty();
-        saveSettingsOnFrequentAction();
-    });
-}
-
 let notifiedForUpdatesThisSession = false;
 
 async function runUpdateCheck() {
@@ -146,7 +79,7 @@ async function runUpdateCheck() {
                 notifiedForUpdatesThisSession = true;
 
                 showNotice(
-                    "Equicord has been updated!",
+                    "NyaCord has been updated!",
                     "Restart",
                     relaunch
                 );
@@ -158,7 +91,7 @@ async function runUpdateCheck() {
         notifiedForUpdatesThisSession = true;
 
         showNotice(
-            "A new version of Equicord is available!",
+            "A new version of NyaCord is available!",
             "View Update",
             () => openSettingsTabModal(UpdaterTab!)
         );
@@ -171,7 +104,7 @@ async function init() {
     await onceReady;
     startAllPlugins(StartAt.WebpackReady);
 
-    syncSettings();
+    initRuntimeUserPlugins();
 
     if (!IS_DEV && !IS_WEB && !IS_UPDATER_DISABLED) {
         runUpdateCheck();
@@ -189,7 +122,7 @@ async function init() {
                 "Webpack has finished initialising, but some patches haven't been applied yet.",
                 "This might be expected since some Modules are lazy loaded, but please verify",
                 "that all plugins are working as intended.",
-                "You are seeing this warning because this is a Development build of Equicord.",
+                "You are seeing this warning because this is a Development build of NyaCord.",
                 "\nThe following patches have not been applied:",
                 "\n\n" + pendingPatches.map(p => `${p.plugin}: ${p.find}`).join("\n")
             );

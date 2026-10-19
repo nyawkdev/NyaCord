@@ -35,9 +35,10 @@ import { classes, isObjectEmpty } from "@utils/misc";
 import { OptionType, Plugin, PluginTag } from "@utils/types";
 import { RenderModalProps, User } from "@vencord/discord-types";
 import { findComponentByCodeLazy, findCssClassesLazy } from "@webpack";
-import { Clickable, FluxDispatcher, Modal, openModal, React, showToast,Text, Tooltip, useEffect, useMemo, UserStore, UserSummaryItem, UserUtils, useState } from "@webpack/common";
+import { Alerts, Clickable, FluxDispatcher, Modal, openModal, React, showToast, Text, Tooltip, useEffect, useMemo, UserStore, UserSummaryItem, UserUtils, useState } from "@webpack/common";
 import { Constructor } from "type-fest";
 
+import { deleteUserPlugin, runtimePluginFiles } from "@api/UserPluginLoader";
 import { PluginMeta } from "~plugins";
 
 import { OptionComponentMap } from "./components";
@@ -255,7 +256,40 @@ export default function PluginModal({ plugin, onRestartNeeded, onClose, transiti
                                 )}
                             </Tooltip>
                         ) : <div />}
-                        {!pluginMeta.userPlugin && (
+                        {pluginMeta?.userPlugin ? (
+                            <div className={cl("links")} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                <FavoriteButton
+                                    isFavorite={pluginSettings.isFavorite ?? false}
+                                    onClick={() => pluginSettings.isFavorite = !pluginSettings.isFavorite}
+                                />
+                                {runtimePluginFiles.has(plugin.name) && (
+                                    <Button
+                                        variant="dangerPrimary"
+                                        size="small"
+                                        onClick={() => {
+                                            const fileName = runtimePluginFiles.get(plugin.name)!;
+                                            Alerts.show({
+                                                title: `Delete ${plugin.name}?`,
+                                                body: `Are you sure you want to delete ${plugin.name} (${fileName})? This will permanently remove the file from your userplugins folder.`,
+                                                confirmText: "Delete",
+                                                cancelText: "Cancel",
+                                                onConfirm: async () => {
+                                                    await deleteUserPlugin(plugin.name);
+                                                    showToast({
+                                                        text: `Deleted plugin: ${plugin.name}`,
+                                                        variant: "success",
+                                                        position: "bottom"
+                                                    });
+                                                    onClose();
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        Delete Plugin
+                                    </Button>
+                                )}
+                            </div>
+                        ) : (
                             <div className={cl("links")}>
                                 <FavoriteButton
                                     isFavorite={pluginSettings.isFavorite ?? false}

@@ -46,6 +46,17 @@ export default {
         openFolder: () => invoke<void>(IpcEvents.OPEN_THEMES_FOLDER),
     },
 
+    userplugins: {
+        openFolder: () => invoke<void>(IpcEvents.OPEN_USERPLUGINS_FOLDER),
+        list: () => invoke<Array<{ name: string; fileName: string; isDir: boolean }>>(IpcEvents.GET_USERPLUGINS_LIST),
+        getData: (fileName: string) => invoke<string | undefined>(IpcEvents.GET_USERPLUGIN_DATA, fileName),
+        save: (fileName: string, content: string) => invoke<void>(IpcEvents.SAVE_USERPLUGIN, fileName, content),
+        delete: (fileName: string) => invoke<void>(IpcEvents.DELETE_USERPLUGIN, fileName),
+        addChangeListener: (cb: () => void) => {
+            ipcRenderer.on(IpcEvents.USERPLUGINS_UPDATE, () => cb());
+        }
+    },
+
     updater: {
         getRepo: () => invoke<IpcRes<string>>(IpcEvents.UPDATER_GET_REPO),
         getUpdates: () => invoke<IpcRes<UpdateData[]>>(IpcEvents.UPDATER_LIST_UPDATES),

@@ -1,0 +1,81 @@
+# [<img src="./assets/logo.png" width="40" align="left" alt="NyaCord">](https://github.com/nyawkdev/NyaCord) NyaCord
+
+[🇺🇸 Read in English](README.md)
+
+[![Build and Release](https://github.com/nyawkdev/NyaCord/actions/workflows/build.yml/badge.svg)](https://github.com/nyawkdev/NyaCord/actions/workflows/build.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
+NyaCord — это быстрый, удобный и кастомизируемый клиентский мод для Discord, основанный на кодовой базе **Equicord** и **Vencord**. Включает более 300+ встроенных плагинов, поддержку добавления пользовательских плагинов без пересборки и эксклюзивный набор функций **NyaCord Secret**.
+
+---
+
+## ✨ Возможности
+
+- **🐾 300+ Встроенных плагинов:** Темы оформления, кастомный CSS, Rich Presence, удобные горячие клавиши, настройки звука и многое другое.
+- **📁 Добавление UserPlugins без пересборки:** Достаточно просто положить любой кастомный `.js`, `.ts` или `.tsx` файл плагина в папку `%AppData%\NyaCord\userplugins` — мод автоматически загрузит его на лету.
+- **🕵️ Раздел NyaCord Secret:** Встроенные стелс-функции и скрытые возможности, вдохновлённые приватными клиентами, реализованные на чистом открытом коде без слежки, телеметрии и бэкдоров:
+  - **SilentTyping:** Печатайте сообщения незаметно — статус "печатает..." не отправляется на сервер.
+  - **SilentEdit:** Редактируйте сообщения без появления плашки *(отредактировано)*.
+  - **Anti-Delete (MessageLogger):** Сохранение удалённых и отредактированных сообщений в чате с полной историей изменений.
+  - **ShowHiddenChannels:** Просмотр закрытых и недоступных каналов, их тем и требуемых ролей.
+  - **VolumeBooster:** Расширение ползунков громкости участников до 500% (обход стандартного лимита Discord 200%).
+  - **AudioLimiter:** Защита слуха — автоматическое сжатие и ограничение резких звуковых перегрузок и криков в микрофон.
+  - **SpotifyCrack:** Совместное прослушивание (Listen Along) без Spotify Premium и отключение автопаузы музыки через 30 секунд разговора.
+  - **UnlimitedAccounts:** Снятие лимита в 5 аккаунтов в стандартном переключателе учетных записей Discord.
+  - **AntiNickname:** Автоматический возврат никнейма, если модераторы сервера принудительно его сбросили или изменили.
+- **⚡ Поддержка OpenAsar:** Быстрая установка легковесного ядра OpenAsar в один клик для ускорения Discord и снижения потребления оперативной памяти.
+- **🚫 Полная автономность и приватность:** Удалена зависимость от сторонних облачных сервисов, локальное резервное копирование и восстановление настроек в JSON.
+
+---
+
+## 🚀 Установка
+
+### Готовые установщики (Windows)
+
+Загрузите актуальную версию со страницы [Releases](https://github.com/nyawkdev/NyaCord/releases):
+- **Графический установщик (GUI):** Запустите `NyaCordInstaller.exe` — чистый, минималистичный интерфейс в темном стиле Discord.
+- **Консольный установщик (CLI):** Запустите `NyaCordInstallerCli.exe` для установки через командную строку.
+
+---
+
+## 🛠️ Сборка из исходников
+
+### Требования
+- [Node.js LTS (v20+)](https://nodejs.org/)
+- [pnpm](https://pnpm.io/)
+- [Git](https://git-scm.com/)
+
+```shell
+# 1. Клонирование репозитория
+git clone https://github.com/nyawkdev/NyaCord.git
+cd NyaCord
+
+# 2. Установка зависимостей
+pnpm install --frozen-lockfile
+
+# 3. Сборка NyaCord
+pnpm build
+
+# 4. Запуск установщика
+./dist/install-gui.bat
+```
+
+Сборка браузерного расширения:
+```shell
+pnpm buildWeb
+```
+
+---
+
+## 📜 Благодарности и кредиты
+
+NyaCord создан на основе труда сообщества разработчиков свободного ПО:
+- [Equicord](https://github.com/Equicord/Equicord) — за обширную библиотеку плагинов и улучшений.
+- [Vencord](https://github.com/Vendicated/Vencord) — автору [Vendicated](https://github.com/Vendicated) и контрибьюторам за создание архитектуры мода.
+- [OpenAsar](https://openasar.dev) — разработчику [Goose](https://github.com/GooseMod) за оптимизированное ядро Discord desktop.
+
+---
+
+## 📄 Лицензия
+
+Проект распространяется под лицензией [GNU General Public License v3.0](LICENSE).
