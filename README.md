@@ -17,7 +17,7 @@ NyaCord is a fast, clean, and customizable Discord client modification based on 
 
 - **300+ Built-in Plugins:** Everything from themes, custom CSS, rich presence, utility shortcuts, to audio tweaks.
 - **Runtime UserPlugins:** Drop any custom `.js`, `.ts`, or `.tsx` plugin directly into `%AppData%\NyaCord\userplugins` without needing to recompile the client.
-- **Local Profile Cosmetics (Nightcord Visuals):** Freely customize your profile locally with real Discord badges, live-loaded shop avatar decorations, custom display name, username handle, and account creation date.
+- **Local Profile Cosmetics (Nightcord Visuals):** Freely customize your profile locally with real Discord badges, multi-year Nitro tenure tiers with tooltips, live-loaded shop avatar frames and profile effects, hide existing real badges, custom display name, username handle, and quick account creation date picker.
 - **NyaCord Secret Suite:** Built-in stealth & power features inspired by underground clients, engineered cleanly with zero tracking or telemetry:
   - **SilentTyping:** Type invisibly without sending typing indicator events.
   - **SilentEdit:** Edit messages without the `(edited)` tag.

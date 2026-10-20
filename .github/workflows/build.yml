@@ -28,6 +28,12 @@ jobs:
                   runtime: node@v24
                   require-lockfile: true
 
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: '1.23'
+                  cache: false
+
             - name: Build web
               run: pnpm buildWebStandalone
 
@@ -40,20 +46,60 @@ jobs:
                   pnpm generateEquicordPluginJson dist/equicordplugins.json
                   pnpm generateVencordPluginJson dist/vencordplugins.json
                   pnpm generateDevsList dist/devs.json
+                  cp dist/plugins.json dist/nyacordplugins.json
+
+            - name: Build CLI Installers
+              run: |
+                  cd installer
+                  GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../dist/NyaCordInstallerCli.exe .
+                  GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../dist/NyaCordInstallerCli-linux .
+                  GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../dist/NyaCordInstallerCli-mac .
+                  cd ..
 
             - name: Package artifacts
               run: |
                   mkdir -p dist/release
+
+                  # Browser files
                   cp dist/browser/browser.* dist/release/ 2>/dev/null || true
+
+                  # User scripts & styles
                   cp dist/NyaCord.user.* dist/release/ 2>/dev/null || true
-                  cp dist/*.{json,zip,asar} dist/release/ 2>/dev/null || true
+
+                  # Archives, metadata, desktop asar
+                  cp dist/*.{json,zip} dist/release/ 2>/dev/null || true
+                  cp dist/desktop.asar dist/release/ 2>/dev/null || true
+
+                  # Desktop unpacked files
                   cp dist/desktop/* dist/release/ 2>/dev/null || true
+
+                  # Nyabop files (adapted from equibop, renamed to nyabop)
+                  if [ -f dist/equibop.asar ]; then
+                    cp dist/equibop.asar dist/release/nyabop.asar
+                  fi
                   for file in dist/equibop/*; do
                     if [ -f "$file" ]; then
                       filename=$(basename "$file")
-                      cp "$file" "dist/release/equibop${filename^}"
+                      cp "$file" "dist/release/nyabop${filename^}"
                     fi
                   done
+
+                  # Installers
+                  if [ -f dist/NyaCordInstaller.exe ]; then
+                    cp dist/NyaCordInstaller.exe dist/release/
+                  fi
+                  if [ -f dist/NyaCordInstallerCli.exe ]; then
+                    cp dist/NyaCordInstallerCli.exe dist/release/
+                  fi
+                  if [ -f dist/NyaCordInstallerCli-linux ]; then
+                    cp dist/NyaCordInstallerCli-linux dist/release/
+                  fi
+                  if [ -f dist/NyaCordInstallerCli-mac ]; then
+                    cp dist/NyaCordInstallerCli-mac dist/release/
+                  fi
+
+                  # Remove any equibop remnants and cleanup
+                  rm -f dist/release/equibop*
                   find dist/release -size 0 -delete 2>/dev/null || true
                   rm -f dist/release/package.json
                   rm -f dist/release/*.map
