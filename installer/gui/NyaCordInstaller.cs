@@ -8,10 +8,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using SPath = System.Windows.Shapes.Path;
-using SEllipse = System.Windows.Shapes.Ellipse;
 
 namespace NyaCord.Installer
 {
@@ -42,7 +42,6 @@ namespace NyaCord.Installer
         private Button _uninstallBtn;
         private Button _openAsarBtn;
         private Border _statusBadgeBorder;
-        private SEllipse _statusDot;
         private TextBlock _statusText;
         private RichTextBox _logBox;
         private List<DiscordEntry> _discords = new List<DiscordEntry>();
@@ -236,24 +235,14 @@ namespace NyaCord.Installer
             Grid.SetColumn(sectionLabelRow, 0);
             cardHeader.Children.Add(sectionLabelRow);
 
-            // Cute Status Pill
+            // Cute Status Pill without dot
             _statusBadgeBorder = new Border
             {
                 CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(8, 3, 8, 3),
+                Padding = new Thickness(10, 3, 10, 3),
                 Background = new SolidColorBrush(Color.FromArgb(30, 254, 231, 92)),
                 BorderBrush = new SolidColorBrush(ColAmber),
                 BorderThickness = new Thickness(1),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            var statusStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-
-            _statusDot = new SEllipse
-            {
-                Width = 7,
-                Height = 7,
-                Fill = new SolidColorBrush(ColAmber),
-                Margin = new Thickness(0, 0, 6, 0),
                 VerticalAlignment = VerticalAlignment.Center
             };
             _statusText = new TextBlock
@@ -264,15 +253,13 @@ namespace NyaCord.Installer
                 Foreground = new SolidColorBrush(ColAmber),
                 VerticalAlignment = VerticalAlignment.Center
             };
-            statusStack.Children.Add(_statusDot);
-            statusStack.Children.Add(_statusText);
-            _statusBadgeBorder.Child = statusStack;
+            _statusBadgeBorder.Child = _statusText;
             Grid.SetColumn(_statusBadgeBorder, 1);
             cardHeader.Children.Add(_statusBadgeBorder);
 
             cardStack.Children.Add(cardHeader);
 
-            // Styled ComboBox
+            // Fully Styled Dark ComboBox
             _discordCombo = new ComboBox
             {
                 Height = 36,
@@ -282,11 +269,101 @@ namespace NyaCord.Installer
                 FontSize = 12.5,
                 Margin = new Thickness(0, 0, 0, 10)
             };
-            var itemStyle = new Style(typeof(ComboBoxItem));
-            itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, new SolidColorBrush(ColPanel)));
-            itemStyle.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(ColText)));
-            itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7, 10, 7)));
-            _discordCombo.ItemContainerStyle = itemStyle;
+
+            // Custom ComboBox ControlTemplate
+            string comboXaml = @"<ControlTemplate TargetType=""ComboBox"" xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
+              <Grid>
+                <ToggleButton Name=""ToggleButton""
+                              Background=""{TemplateBinding Background}""
+                              BorderBrush=""{TemplateBinding BorderBrush}""
+                              BorderThickness=""{TemplateBinding BorderThickness}""
+                              Focusable=""False""
+                              IsChecked=""{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}""
+                              ClickMode=""Press"">
+                  <ToggleButton.Template>
+                    <ControlTemplate TargetType=""ToggleButton"">
+                      <Border Name=""Border"" Background=""{TemplateBinding Background}"" BorderBrush=""{TemplateBinding BorderBrush}"" BorderThickness=""{TemplateBinding BorderThickness}"" CornerRadius=""6"">
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width=""28"" />
+                          </Grid.ColumnDefinitions>
+                          <Path Grid.Column=""1"" HorizontalAlignment=""Center"" VerticalAlignment=""Center"" Data=""M 0 0 L 4 4 L 8 0 Z"" Fill=""#979CA7"" />
+                        </Grid>
+                      </Border>
+                      <ControlTemplate.Triggers>
+                        <Trigger Property=""IsMouseOver"" Value=""True"">
+                          <Setter TargetName=""Border"" Property=""Background"" Value=""#282A31"" />
+                          <Setter TargetName=""Border"" Property=""BorderBrush"" Value=""#4A4D57"" />
+                        </Trigger>
+                      </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                  </ToggleButton.Template>
+                </ToggleButton>
+                <ContentPresenter Name=""ContentSite""
+                                  IsHitTestVisible=""False""
+                                  Content=""{TemplateBinding SelectionBoxItem}""
+                                  ContentTemplate=""{TemplateBinding SelectionBoxItemTemplate}""
+                                  ContentTemplateSelector=""{TemplateBinding ItemTemplateSelector}""
+                                  Margin=""12,0,28,0""
+                                  VerticalAlignment=""Center""
+                                  HorizontalAlignment=""Left"" />
+                <Popup Name=""PART_Popup""
+                       Placement=""Bottom""
+                       IsOpen=""{TemplateBinding IsDropDownOpen}""
+                       AllowsTransparency=""True""
+                       Focusable=""False""
+                       PopupAnimation=""Slide"">
+                  <Grid Name=""DropDown""
+                        MinWidth=""{TemplateBinding ActualWidth}""
+                        MaxHeight=""{TemplateBinding MaxDropDownHeight}"">
+                    <Border Name=""DropDownBorder""
+                            Background=""#26282E""
+                            BorderBrush=""#383A42""
+                            BorderThickness=""1""
+                            CornerRadius=""6""
+                            Margin=""0,2,0,0"">
+                      <ScrollViewer Margin=""4,6,4,6"" SnapsToDevicePixels=""True"">
+                        <StackPanel IsItemsHost=""True"" KeyboardNavigation.DirectionalNavigation=""Contained"" />
+                      </ScrollViewer>
+                    </Border>
+                  </Grid>
+                </Popup>
+              </Grid>
+            </ControlTemplate>";
+
+            string itemXaml = @"<Style TargetType=""ComboBoxItem"" xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+              <Setter Property=""Background"" Value=""#26282E"" />
+              <Setter Property=""Foreground"" Value=""#D0D3D9"" />
+              <Setter Property=""Padding"" Value=""10,7,10,7"" />
+              <Setter Property=""Template"">
+                <Setter.Value>
+                  <ControlTemplate TargetType=""ComboBoxItem"">
+                    <Border Name=""ItemBorder"" Background=""{TemplateBinding Background}"" CornerRadius=""4"" Padding=""{TemplateBinding Padding}"" Margin=""0,1,0,1"">
+                      <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                      <Trigger Property=""IsMouseOver"" Value=""True"">
+                        <Setter TargetName=""ItemBorder"" Property=""Background"" Value=""#353842"" />
+                        <Setter Property=""Foreground"" Value=""#FFFFFF"" />
+                      </Trigger>
+                      <Trigger Property=""IsSelected"" Value=""True"">
+                        <Setter TargetName=""ItemBorder"" Property=""Background"" Value=""#7983F5"" />
+                        <Setter Property=""Foreground"" Value=""#FFFFFF"" />
+                      </Trigger>
+                    </ControlTemplate.Triggers>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+            </Style>";
+
+            try
+            {
+                _discordCombo.Template = (ControlTemplate)XamlReader.Parse(comboXaml);
+                _discordCombo.ItemContainerStyle = (Style)XamlReader.Parse(itemXaml);
+            }
+            catch { }
+
             _discordCombo.SelectionChanged += OnSelectionChanged;
             cardStack.Children.Add(_discordCombo);
 
@@ -537,7 +614,6 @@ namespace NyaCord.Installer
 
         private void SetStatus(string text, Color color, Color bg)
         {
-            _statusDot.Fill = new SolidColorBrush(color);
             _statusText.Text = text;
             _statusText.Foreground = new SolidColorBrush(color);
             _statusBadgeBorder.BorderBrush = new SolidColorBrush(color);

@@ -13,6 +13,12 @@ export interface DiscordBadgeDef {
     link?: string;
 }
 
+export function getBadgeIconUrl(badge: { icon: string }): string {
+    if (!badge.icon) return "";
+    if (badge.icon.startsWith("http")) return badge.icon;
+    return `https://cdn.discordapp.com/badge-icons/${badge.icon}.png`;
+}
+
 export const DISCORD_BADGES: DiscordBadgeDef[] = [
     // Special
     { id: "staff", name: "Discord Staff", category: "Special", icon: "5e74e9b61934fc1f67c65515d1f7e60d", description: "Discord Staff", flag: 1 << 0, link: "https://discord.com/company" },
@@ -33,31 +39,26 @@ export const DISCORD_BADGES: DiscordBadgeDef[] = [
     { id: "verified_developer", name: "Early Verified Bot Developer", category: "Developer", icon: "6df5892e0f35b051f8b61eace34f4967", description: "Early Verified Bot Developer", flag: 1 << 17 },
     { id: "active_developer", name: "Active Developer", category: "Developer", icon: "6bdc42827a38498929a4920da12695d9", description: "Active Developer", flag: 1 << 22, link: "https://support-dev.discord.com/hc/en-us/articles/10113997751447" },
 
-    // Nitro Subscriptions (Tenure Tiers)
-    { id: "nitro_1m", name: "Nitro (1 Month)", category: "Nitro", icon: "2ba85e8026a8614b640c2837bcdfe21b", description: "Subscriber since May 13, 2024", link: "https://discord.com/settings/premium" },
-    { id: "nitro_2m", name: "Nitro (2 Months)", category: "Nitro", icon: "085ec396db819194eb430d88ef56fc5d", description: "Subscriber since Mar 13, 2024", link: "https://discord.com/settings/premium" },
-    { id: "nitro_3m", name: "Nitro (3 Months)", category: "Nitro", icon: "98664ec28205f41076cc13b35ec03657", description: "Subscriber since Jan 13, 2024", link: "https://discord.com/settings/premium" },
-    { id: "nitro_6m", name: "Nitro (6 Months)", category: "Nitro", icon: "632cd6fe702f342c8dcf936551b9d1b0", description: "Subscriber since Jul 13, 2023", link: "https://discord.com/settings/premium" },
-    { id: "nitro_9m", name: "Nitro (9 Months)", category: "Nitro", icon: "955767eb0155b463242194602c89283e", description: "Subscriber since Apr 13, 2023", link: "https://discord.com/settings/premium" },
-    { id: "nitro_1y", name: "Nitro (1 Year)", category: "Nitro", icon: "4902111feab4865d83aab5083693dd98", description: "Subscriber since Jan 13, 2023", link: "https://discord.com/settings/premium" },
-    { id: "nitro_15m", name: "Nitro (15 Months)", category: "Nitro", icon: "1e90d2e557b7f14b679549ff31eb5c50", description: "Subscriber since Oct 13, 2022", link: "https://discord.com/settings/premium" },
-    { id: "nitro_18m", name: "Nitro (18 Months)", category: "Nitro", icon: "4668ac29e2ff9fb12b598ce1b22e1180", description: "Subscriber since Jul 13, 2022", link: "https://discord.com/settings/premium" },
-    { id: "nitro_2y", name: "Nitro (2 Years)", category: "Nitro", icon: "ec3432d0ffeb6dae4453504fb49cfd2d", description: "Subscriber since Jan 13, 2022", link: "https://discord.com/settings/premium" },
-    { id: "nitro_3y", name: "Nitro (3 Years)", category: "Nitro", icon: "3bb10825eb6745145b23d577ca226d70", description: "Subscriber since Jan 13, 2021", link: "https://discord.com/settings/premium" },
-    { id: "nitro_4y", name: "Nitro (4 Years)", category: "Nitro", icon: "56143c68ff83c6f1d8f1d3c054e0c3d9", description: "Subscriber since Jan 13, 2020", link: "https://discord.com/settings/premium" },
-    { id: "nitro_5y", name: "Nitro (5 Years)", category: "Nitro", icon: "c0f9949ee42d3c5097aa49db96d4ec3d", description: "Subscriber since Jan 13, 2019", link: "https://discord.com/settings/premium" },
-    { id: "nitro_6y", name: "Nitro (6 Years)", category: "Nitro", icon: "44d6db8e4f1a233b879ec3d03ca4d13e", description: "Subscriber since Jan 13, 2018", link: "https://discord.com/settings/premium" },
+    // Nitro Subscriptions (Tenure Tiers with Official Working Discord CDN Assets)
+    { id: "nitro_1m", name: "Nitro Bronze (1 Month)", category: "Nitro", icon: "https://discord.com/assets/0386191373eb17c272df.svg", description: "Subscriber since May 13, 2024", link: "https://discord.com/settings/premium" },
+    { id: "nitro_3m", name: "Nitro Silver (3 Months)", category: "Nitro", icon: "https://discord.com/assets/9d4d362c62da3c985845.svg", description: "Subscriber since Jan 13, 2024", link: "https://discord.com/settings/premium" },
+    { id: "nitro_6m", name: "Nitro Gold (6 Months)", category: "Nitro", icon: "https://discord.com/assets/8725fe12ada9afa51c1a.svg", description: "Subscriber since Jul 13, 2023", link: "https://discord.com/settings/premium" },
+    { id: "nitro_1y", name: "Nitro Platinum (1 Year)", category: "Nitro", icon: "https://discord.com/assets/746689c803e06be87705.svg", description: "Subscriber since Jan 13, 2023", link: "https://discord.com/settings/premium" },
+    { id: "nitro_2y", name: "Nitro Diamond (2 Years)", category: "Nitro", icon: "https://discord.com/assets/f3521e2861ff44a0384d.svg", description: "Subscriber since Jan 13, 2022", link: "https://discord.com/settings/premium" },
+    { id: "nitro_3y", name: "Nitro Emerald (3 Years)", category: "Nitro", icon: "https://discord.com/assets/f2b9b02fb22cc6459922.svg", description: "Subscriber since Jan 13, 2021", link: "https://discord.com/settings/premium" },
+    { id: "nitro_5y", name: "Nitro Ruby (5 Years)", category: "Nitro", icon: "https://discord.com/assets/ecf86e18838013c9d95a.svg", description: "Subscriber since Jan 13, 2019", link: "https://discord.com/settings/premium" },
+    { id: "nitro_6y", name: "Nitro Opal (6+ Years)", category: "Nitro", icon: "https://discord.com/assets/b4fc7a9c37ec2fae36e3.svg", description: "Subscriber since Jan 13, 2018", link: "https://discord.com/settings/premium" },
 
-    // Server Booster Badges
-    { id: "booster_1m", name: "Booster (1 Month)", category: "Booster", icon: "51040c70d4f20a921ad6674ff86fc95c", description: "Server Booster since May 13, 2024" },
-    { id: "booster_2m", name: "Booster (2 Months)", category: "Booster", icon: "0e409940733a4645ef59a03233ba3576", description: "Server Booster since Mar 13, 2024" },
-    { id: "booster_3m", name: "Booster (3 Months)", category: "Booster", icon: "72bed924410c304dbe3d00a6e593ff59", description: "Server Booster since Jan 13, 2024" },
-    { id: "booster_6m", name: "Booster (6 Months)", category: "Booster", icon: "11c479427320b9e832d203844f2430b3", description: "Server Booster since Jul 13, 2023" },
-    { id: "booster_9m", name: "Booster (9 Months)", category: "Booster", icon: "d9aa1787c95e1e19488a0b06c8c4a938", description: "Server Booster since Apr 13, 2023" },
-    { id: "booster_12m", name: "Booster (12 Months)", category: "Booster", icon: "938743d8376c69818ab9d7eb38b97d19", description: "Server Booster since Jan 13, 2023" },
-    { id: "booster_15m", name: "Booster (15 Months)", category: "Booster", icon: "b57cf63d395728a40dd7e2a975f9ee69", description: "Server Booster since Oct 13, 2022" },
-    { id: "booster_18m", name: "Booster (18 Months)", category: "Booster", icon: "8aa46d51829e07297e201777d1a29367", description: "Server Booster since Jul 13, 2022" },
-    { id: "booster_24m", name: "Booster (24 Months)", category: "Booster", icon: "37a34ae5a04bb01ea8dc735bc2cb3782", description: "Server Booster since Jan 13, 2022" }
+    // Server Booster Badges (Tenure Tiers with Official Working Discord CDN Assets)
+    { id: "booster_1m", name: "Booster (1 Month)", category: "Booster", icon: "https://discord.com/assets/ca18353be0e57a2b3b3132fa1c08d6b4.svg", description: "Server Booster since May 13, 2024" },
+    { id: "booster_2m", name: "Booster (2 Months)", category: "Booster", icon: "https://discord.com/assets/22f99ed6e34eaca48950254c70f8fe8d.svg", description: "Server Booster since Mar 13, 2024" },
+    { id: "booster_3m", name: "Booster (3 Months)", category: "Booster", icon: "https://discord.com/assets/4a2618502278029ce88adeea179ed435.svg", description: "Server Booster since Jan 13, 2024" },
+    { id: "booster_6m", name: "Booster (6 Months)", category: "Booster", icon: "https://discord.com/assets/fbafa6adb7c49a6a2c3822521ff2af2f.svg", description: "Server Booster since Jul 13, 2023" },
+    { id: "booster_9m", name: "Booster (9 Months)", category: "Booster", icon: "https://discord.com/assets/0599f90e32c15b532647163edd72f70a.svg", description: "Server Booster since Apr 13, 2023" },
+    { id: "booster_12m", name: "Booster (1 Year)", category: "Booster", icon: "https://discord.com/assets/e07c08cdc72bcc78b69c76d2c7ceb344.svg", description: "Server Booster since Jan 13, 2023" },
+    { id: "booster_15m", name: "Booster (15 Months)", category: "Booster", icon: "https://discord.com/assets/c7f26927db5e7806790f4e968038630a.svg", description: "Server Booster since Oct 13, 2022" },
+    { id: "booster_18m", name: "Booster (18 Months)", category: "Booster", icon: "https://discord.com/assets/c6d88d1d12afe03bdc4ebb747f8d196b.svg", description: "Server Booster since Jul 13, 2022" },
+    { id: "booster_24m", name: "Booster (2 Years)", category: "Booster", icon: "https://discord.com/assets/d96ed283b74de75692487b7499fb8d09.svg", description: "Server Booster since Jan 13, 2022" }
 ];
 
 export interface CollectibleItem {
@@ -67,6 +68,7 @@ export interface CollectibleItem {
     type: number;
     asset: string;
     categoryName: string;
+    previewUrl?: string;
 }
 
 export const FALLBACK_DECORATIONS: CollectibleItem[] = [
@@ -75,7 +77,11 @@ export const FALLBACK_DECORATIONS: CollectibleItem[] = [
     { id: "cyberpunk", skuId: "1144003461608280176", name: "Cyberpunk Visor", type: 0, asset: "a_8a7d5df2f0d9a6c76e7323eead089ba8", categoryName: "Cyberpunk" },
     { id: "magic_portal", skuId: "1144003461608280177", name: "Magic Portal", type: 0, asset: "a_f08e4265ca598d9c57d7ee46d0a1b63e", categoryName: "Fantasy" },
     { id: "autumn_leaves", skuId: "1144003461608280178", name: "Autumn Leaves", type: 0, asset: "a_fa53f4787d559b3f3a8b4172c7a52233", categoryName: "Nature" },
-    { id: "galaxy", skuId: "1144003461608280179", name: "Galaxy Orbit", type: 0, asset: "a_6e995f59048aef4627d2c3df83c92131", categoryName: "Space" }
+    { id: "galaxy", skuId: "1144003461608280179", name: "Galaxy Orbit", type: 0, asset: "a_6e995f59048aef4627d2c3df83c92131", categoryName: "Space" },
+    { id: "pixel_heart", skuId: "1144003461608280180", name: "Pixel Hearts", type: 0, asset: "a_4578b8a071ef24a1e94119fa9d0e2e5c", categoryName: "Retro" },
+    { id: "flame_aura", skuId: "1144003461608280181", name: "Fire Aura", type: 0, asset: "a_534e6fef3724c7f078972f7ca5d4ee38", categoryName: "Fantasy" },
+    { id: "electric_spark", skuId: "1144003461608280182", name: "Neon Sparks", type: 0, asset: "a_d908e2f89b7d3077e682aa1a18d1844b", categoryName: "Cyberpunk" },
+    { id: "angel_halo", skuId: "1144003461608280183", name: "Angel Halo", type: 0, asset: "a_7e937d6e6f4f26b52758156dbd1297e5", categoryName: "Cute" }
 ];
 
 export const FALLBACK_EFFECTS: CollectibleItem[] = [
@@ -83,7 +89,8 @@ export const FALLBACK_EFFECTS: CollectibleItem[] = [
     { id: "cyber_grid", skuId: "1144003461608280202", name: "Cyber Circuit Grid", type: 1, asset: "e_8a7d5df2f0d9a6c76e7323eead089ba8", categoryName: "Cyberpunk" },
     { id: "arcane_runes", skuId: "1144003461608280203", name: "Arcane Runes", type: 1, asset: "e_f08e4265ca598d9c57d7ee46d0a1b63e", categoryName: "Fantasy" },
     { id: "cosmic_nebula", skuId: "1144003461608280204", name: "Cosmic Nebula", type: 1, asset: "e_6e995f59048aef4627d2c3df83c92131", categoryName: "Space" },
-    { id: "retro_synth", skuId: "1144003461608280205", name: "Retro Synthwave", type: 1, asset: "e_fa53f4787d559b3f3a8b4172c7a52233", categoryName: "Retro" }
+    { id: "retro_synth", skuId: "1144003461608280205", name: "Retro Synthwave", type: 1, asset: "e_fa53f4787d559b3f3a8b4172c7a52233", categoryName: "Retro" },
+    { id: "starfall", skuId: "1144003461608280206", name: "Shooting Stars", type: 1, asset: "e_1d6248bcf9a4a768d6f081498b958742", categoryName: "Space" }
 ];
 
 let loadedDecorations: CollectibleItem[] = [];
@@ -202,6 +209,31 @@ export const settings = definePluginSettings({
         type: OptionType.STRING,
         description: "Profile effect SKU ID",
         default: ""
+    },
+    enableThemeColors: {
+        type: OptionType.BOOLEAN,
+        description: "Enable custom profile gradient colors",
+        default: false
+    },
+    primaryThemeColor: {
+        type: OptionType.STRING,
+        description: "Primary theme hex color (e.g. #FF94B8)",
+        default: "#7983F5"
+    },
+    accentThemeColor: {
+        type: OptionType.STRING,
+        description: "Accent theme hex color (e.g. #7983F5)",
+        default: "#FF94B8"
+    },
+    enableBanner: {
+        type: OptionType.BOOLEAN,
+        description: "Enable custom banner image or gif",
+        default: false
+    },
+    customBannerUrl: {
+        type: OptionType.STRING,
+        description: "Custom profile banner image or GIF URL",
+        default: ""
     }
 });
 
@@ -283,6 +315,13 @@ export function applyToCurrentUser() {
     });
 }
 
+function parseHexColor(hex: string): number {
+    if (!hex) return 0;
+    const clean = hex.replace("#", "").trim();
+    const val = parseInt(clean, 16);
+    return isNaN(val) ? 0 : val;
+}
+
 function patchStores() {
     if (SnowflakeUtils && !originalExtractTimestamp) {
         originalExtractTimestamp = SnowflakeUtils.extractTimestamp;
@@ -345,6 +384,17 @@ function patchStores() {
 
                 if (settings.store.enableProfileEffect && settings.store.customProfileEffectId) {
                     profile.profileEffectId = settings.store.customProfileEffectId;
+                }
+
+                if (settings.store.enableThemeColors) {
+                    profile.themeColors = [
+                        parseHexColor(settings.store.primaryThemeColor),
+                        parseHexColor(settings.store.accentThemeColor)
+                    ];
+                }
+
+                if (settings.store.enableBanner && settings.store.customBannerUrl) {
+                    profile.banner = settings.store.customBannerUrl;
                 }
             }
             return profile;

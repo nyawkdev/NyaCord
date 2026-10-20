@@ -11,6 +11,7 @@ import {
     CollectibleItem,
     DISCORD_BADGES,
     fetchDiscordCollectibles,
+    getBadgeIconUrl,
     getRealUserBadges,
     settings as localCosmeticsSettings
 } from "@plugins/localCosmetics";
@@ -129,11 +130,20 @@ const DATE_PRESETS = [
     { label: "Today", date: new Date().toISOString().split("T")[0] }
 ];
 
+const THEME_PALETTES = [
+    { name: "Sakura Blossom", primary: "#FF94B8", accent: "#7983F5" },
+    { name: "Cyberpunk Neon", primary: "#00F0FF", accent: "#FF007F" },
+    { name: "Midnight Rose", primary: "#8A2387", accent: "#E94057" },
+    { name: "Deep Space", primary: "#1E3C72", accent: "#2A5298" },
+    { name: "Emerald Mist", primary: "#11998E", accent: "#38EF7D" },
+    { name: "Sunset Gold", primary: "#F12711", accent: "#F5AF19" }
+];
+
 function LocalCosmeticsEditor() {
     const isCosmeticsEnabled = isPluginEnabled("LocalCosmetics");
     useSettings(["plugins.LocalCosmetics.enabled" as any]);
 
-    const [activeSubTab, setActiveSubTab] = useState<"identity" | "badges" | "decorations" | "effects">("identity");
+    const [activeSubTab, setActiveSubTab] = useState<"identity" | "badges" | "decorations" | "effects" | "theme">("identity");
 
     // Collectibles & Real badges
     const [decorations, setDecorations] = useState<CollectibleItem[]>([]);
@@ -164,10 +174,18 @@ function LocalCosmeticsEditor() {
     const [enableDecoration, setEnableDecoration] = useState(localCosmeticsSettings.store.enableDecoration ?? false);
     const [selectedDeco, setSelectedDeco] = useState(localCosmeticsSettings.store.customDecorationAsset || "");
     const [decoCategory, setDecoCategory] = useState<string>("All");
+    const [decoSearch, setDecoSearch] = useState<string>("");
 
     const [enableProfileEffect, setEnableProfileEffect] = useState(localCosmeticsSettings.store.enableProfileEffect ?? false);
     const [selectedEffect, setSelectedEffect] = useState(localCosmeticsSettings.store.customProfileEffectId || "");
     const [effectCategory, setEffectCategory] = useState<string>("All");
+
+    const [enableThemeColors, setEnableThemeColors] = useState(localCosmeticsSettings.store.enableThemeColors ?? false);
+    const [primaryColor, setPrimaryColor] = useState(localCosmeticsSettings.store.primaryThemeColor || "#7983F5");
+    const [accentColor, setAccentColor] = useState(localCosmeticsSettings.store.accentThemeColor || "#FF94B8");
+
+    const [enableBanner, setEnableBanner] = useState(localCosmeticsSettings.store.enableBanner ?? false);
+    const [customBanner, setCustomBanner] = useState(localCosmeticsSettings.store.customBannerUrl || "");
 
     useEffect(() => {
         fetchDiscordCollectibles().then(res => {
@@ -225,6 +243,13 @@ function LocalCosmeticsEditor() {
         localCosmeticsSettings.store.enableProfileEffect = enableProfileEffect;
         localCosmeticsSettings.store.customProfileEffectId = selectedEffect;
 
+        localCosmeticsSettings.store.enableThemeColors = enableThemeColors;
+        localCosmeticsSettings.store.primaryThemeColor = primaryColor;
+        localCosmeticsSettings.store.accentThemeColor = accentColor;
+
+        localCosmeticsSettings.store.enableBanner = enableBanner;
+        localCosmeticsSettings.store.customBannerUrl = customBanner;
+
         applyToCurrentUser();
         showToast({ text: "Profile cosmetics applied successfully!", variant: "success" });
     };
@@ -243,6 +268,11 @@ function LocalCosmeticsEditor() {
         setSelectedDeco("");
         setEnableProfileEffect(false);
         setSelectedEffect("");
+        setEnableThemeColors(false);
+        setPrimaryColor("#7983F5");
+        setAccentColor("#FF94B8");
+        setEnableBanner(false);
+        setCustomBanner("");
 
         localCosmeticsSettings.store.enableDisplayName = false;
         localCosmeticsSettings.store.customDisplayName = "";
@@ -258,6 +288,11 @@ function LocalCosmeticsEditor() {
         localCosmeticsSettings.store.customDecorationSkuId = "";
         localCosmeticsSettings.store.enableProfileEffect = false;
         localCosmeticsSettings.store.customProfileEffectId = "";
+        localCosmeticsSettings.store.enableThemeColors = false;
+        localCosmeticsSettings.store.primaryThemeColor = "#7983F5";
+        localCosmeticsSettings.store.accentThemeColor = "#FF94B8";
+        localCosmeticsSettings.store.enableBanner = false;
+        localCosmeticsSettings.store.customBannerUrl = "";
 
         applyToCurrentUser();
         showToast({ text: "All local cosmetics reset to defaults.", variant: "success" });
@@ -276,10 +311,12 @@ function LocalCosmeticsEditor() {
 
     // Filter categories
     const decoCategories = ["All", ...Array.from(new Set(decorations.map(d => d.categoryName).filter(Boolean)))];
-    const filteredDecos = decoCategory === "All" ? decorations : decorations.filter(d => d.categoryName === decoCategory);
+    const filteredDecos = decorations
+        .filter(d => decoCategory === "All" || d.categoryName === decoCategory)
+        .filter(d => !decoSearch || d.name.toLowerCase().includes(decoSearch.toLowerCase()));
 
     const effectCategories = ["All", ...Array.from(new Set(effects.map(e => e.categoryName).filter(Boolean)))];
-    const filteredEffects = effectCategory === "All" ? effects : effects.filter(e => e.categoryName === effectCategory);
+    const filteredEffects = effects.filter(e => effectCategory === "All" || e.categoryName === effectCategory);
 
     const badgeCategories = ["All", "Special", "HypeSquad", "Developer", "Nitro", "Booster"];
     const filteredBadges = badgeCategory === "All" ? DISCORD_BADGES : DISCORD_BADGES.filter(b => b.category === badgeCategory);
@@ -297,12 +334,12 @@ function LocalCosmeticsEditor() {
                 <div>
                     <div style={{ fontWeight: 600, fontSize: "16px", color: "var(--header-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
                         <span>Local Profile Cosmetics</span>
-                        <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "10px", backgroundColor: "var(--brand-500-02a, rgba(88, 101, 242, 0.2))", color: "var(--brand-500)" }}>
-                            Nightcord Visuals
+                        <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "10px", backgroundColor: "rgba(255, 148, 184, 0.2)", color: "#FF94B8" }}>
+                            Nightcord Visuals (=^･ω･^=)
                         </span>
                     </div>
                     <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px" }}>
-                        Locally modify your profile cosmetics, real badges, avatar frames, profile effects, and account creation date.
+                        Locally customize your profile with official badges, Nitro tenure tiers, avatar frames, profile effects, colors, and account registration date.
                     </div>
                 </div>
                 <FormSwitch
@@ -316,7 +353,7 @@ function LocalCosmeticsEditor() {
             {isCosmeticsEnabled && (
                 <div style={{ marginTop: "14px" }}>
                     {/* Navigation Sub-Tabs */}
-                    <div style={{ display: "flex", gap: "6px", borderBottom: "1px solid var(--background-modifier-accent)", paddingBottom: "10px", marginBottom: "16px" }}>
+                    <div style={{ display: "flex", gap: "6px", borderBottom: "1px solid var(--background-modifier-accent)", paddingBottom: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
                         <button
                             type="button"
                             onClick={() => setActiveSubTab("identity")}
@@ -380,6 +417,22 @@ function LocalCosmeticsEditor() {
                             }}
                         >
                             🌌 Profile Effects
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveSubTab("theme")}
+                            style={{
+                                padding: "6px 14px",
+                                borderRadius: "6px",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "12.5px",
+                                fontWeight: 500,
+                                backgroundColor: activeSubTab === "theme" ? "var(--background-modifier-selected)" : "transparent",
+                                color: activeSubTab === "theme" ? "var(--header-primary)" : "var(--text-muted)"
+                            }}
+                        >
+                            🎨 Theme & Banner
                         </button>
                     </div>
 
@@ -536,7 +589,7 @@ function LocalCosmeticsEditor() {
                                                         fontSize: "11px",
                                                         cursor: "pointer",
                                                         border: createdAt === p.date ? "1px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
-                                                        backgroundColor: createdAt === p.date ? "var(--brand-500-02a, rgba(88, 101, 242, 0.2))" : "var(--background-secondary)",
+                                                        backgroundColor: createdAt === p.date ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
                                                         color: createdAt === p.date ? "var(--header-primary)" : "var(--text-muted)"
                                                     }}
                                                 >
@@ -566,6 +619,7 @@ function LocalCosmeticsEditor() {
                                         {realBadges.map((rb, idx) => {
                                             const idKey = rb.id || rb.icon || `real_${idx}`;
                                             const isHidden = hiddenBadges.includes(rb.id) || hiddenBadges.includes(rb.icon);
+                                            const iconSrc = getBadgeIconUrl(rb);
                                             return (
                                                 <button
                                                     key={idKey}
@@ -586,12 +640,13 @@ function LocalCosmeticsEditor() {
                                                     }}
                                                     title={isHidden ? "Click to unhide this badge" : "Click to hide this badge"}
                                                 >
-                                                    {rb.icon && (
+                                                    {iconSrc && (
                                                         <img
-                                                            src={`https://cdn.discordapp.com/badge-icons/${rb.icon}.png`}
+                                                            src={iconSrc}
                                                             alt={rb.description || "Badge"}
                                                             width={16}
                                                             height={16}
+                                                            style={{ objectFit: "contain" }}
                                                         />
                                                     )}
                                                     <span>{rb.description || rb.id}</span>
@@ -610,7 +665,7 @@ function LocalCosmeticsEditor() {
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
                                     <div>
                                         <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--header-primary)" }}>
-                                            Add Custom Badges
+                                            Add Custom Badges & Nitro Tiers
                                         </div>
                                         <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
                                             Select badges to display on your profile. Hover over any badge to view its tooltip.
@@ -638,12 +693,12 @@ function LocalCosmeticsEditor() {
                                                     type="button"
                                                     onClick={() => setBadgeCategory(cat)}
                                                     style={{
-                                                        padding: "3px 10px",
+                                                        padding: "4px 11px",
                                                         borderRadius: "12px",
                                                         fontSize: "11px",
                                                         cursor: "pointer",
                                                         border: badgeCategory === cat ? "1px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
-                                                        backgroundColor: badgeCategory === cat ? "var(--brand-500-02a, rgba(88, 101, 242, 0.2))" : "var(--background-secondary)",
+                                                        backgroundColor: badgeCategory === cat ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
                                                         color: badgeCategory === cat ? "var(--header-primary)" : "var(--text-muted)"
                                                     }}
                                                 >
@@ -652,11 +707,12 @@ function LocalCosmeticsEditor() {
                                             ))}
                                         </div>
 
-                                        {/* Badges List */}
+                                        {/* Badges List with working icons */}
                                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                                             {filteredBadges.map(badge => {
                                                 const isSelected = selectedBadges.includes(badge.id);
                                                 const alreadyOwned = isAlreadyOnProfile(badge.id, badge.icon);
+                                                const iconUrl = getBadgeIconUrl(badge);
 
                                                 return (
                                                     <button
@@ -678,7 +734,7 @@ function LocalCosmeticsEditor() {
                                                             backgroundColor: alreadyOwned
                                                                 ? "var(--background-modifier-hover)"
                                                                 : isSelected
-                                                                ? "var(--brand-500-02a, rgba(88, 101, 242, 0.2))"
+                                                                ? "rgba(121, 131, 245, 0.2)"
                                                                 : "var(--background-secondary)",
                                                             color: alreadyOwned
                                                                 ? "var(--text-muted)"
@@ -691,12 +747,15 @@ function LocalCosmeticsEditor() {
                                                         }}
                                                         title={alreadyOwned ? "Already present on your real profile" : badge.description}
                                                     >
-                                                        <img
-                                                            src={`https://cdn.discordapp.com/badge-icons/${badge.icon}.png`}
-                                                            alt={badge.name}
-                                                            width={16}
-                                                            height={16}
-                                                        />
+                                                        {iconUrl && (
+                                                            <img
+                                                                src={iconUrl}
+                                                                alt={badge.name}
+                                                                width={16}
+                                                                height={16}
+                                                                style={{ objectFit: "contain" }}
+                                                            />
+                                                        )}
                                                         <span>{badge.name}</span>
                                                         {alreadyOwned && (
                                                             <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
@@ -723,7 +782,7 @@ function LocalCosmeticsEditor() {
                                             Avatar Frame Decoration
                                         </div>
                                         <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
-                                            Dynamically loaded from Discord Collectibles Shop categories with live preview.
+                                            Visual gallery of all official Discord avatar frames with live animated preview.
                                         </div>
                                     </div>
                                     <FormSwitch
@@ -740,88 +799,126 @@ function LocalCosmeticsEditor() {
 
                                 {enableDecoration && (
                                     <div>
-                                        {/* Category Filter */}
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                                            <span style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>Category:</span>
-                                            <select
-                                                value={decoCategory}
-                                                onChange={e => setDecoCategory(e.target.value)}
+                                        {/* Filter & Search Bar */}
+                                        <div style={{ display: "flex", gap: "10px", marginBottom: "12px", flexWrap: "wrap", alignItems: "center" }}>
+                                            <input
+                                                type="text"
+                                                value={decoSearch}
+                                                placeholder="Search avatar frames..."
+                                                onChange={e => setDecoSearch(e.target.value)}
                                                 style={{
-                                                    padding: "5px 8px",
+                                                    flex: 1,
+                                                    minWidth: "160px",
+                                                    padding: "6px 10px",
                                                     borderRadius: "4px",
                                                     backgroundColor: "var(--background-secondary)",
                                                     border: "1px solid var(--background-modifier-accent)",
                                                     color: "var(--text-normal)",
                                                     fontSize: "12px"
                                                 }}
-                                            >
+                                            />
+                                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                                                 {decoCategories.map(c => (
-                                                    <option key={c} value={c}>{c}</option>
+                                                    <button
+                                                        key={c}
+                                                        type="button"
+                                                        onClick={() => setDecoCategory(c)}
+                                                        style={{
+                                                            padding: "3px 8px",
+                                                            borderRadius: "10px",
+                                                            fontSize: "11px",
+                                                            cursor: "pointer",
+                                                            border: decoCategory === c ? "1px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
+                                                            backgroundColor: decoCategory === c ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
+                                                            color: decoCategory === c ? "var(--header-primary)" : "var(--text-muted)"
+                                                        }}
+                                                    >
+                                                        {c}
+                                                    </button>
                                                 ))}
-                                            </select>
+                                            </div>
                                         </div>
 
-                                        {/* Selection Dropdown + Live Preview Box */}
-                                        <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
-                                            <select
-                                                value={selectedDeco}
-                                                onChange={e => {
-                                                    setSelectedDeco(e.target.value);
-                                                    const item = decorations.find(c => c.asset === e.target.value);
-                                                    if (item) {
-                                                        localCosmeticsSettings.store.customDecorationSkuId = item.skuId;
-                                                    }
-                                                    localCosmeticsSettings.store.customDecorationAsset = e.target.value;
+                                        {/* Visual Grid of Frames */}
+                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(115px, 1fr))", gap: "10px", maxHeight: "320px", overflowY: "auto", padding: "4px" }}>
+                                            {/* None Card */}
+                                            <div
+                                                onClick={() => {
+                                                    setSelectedDeco("");
+                                                    localCosmeticsSettings.store.customDecorationAsset = "";
+                                                    localCosmeticsSettings.store.customDecorationSkuId = "";
                                                     applyToCurrentUser();
                                                 }}
                                                 style={{
-                                                    flex: 1,
-                                                    padding: "8px 10px",
-                                                    borderRadius: "4px",
-                                                    backgroundColor: "var(--background-secondary)",
-                                                    border: "1px solid var(--background-modifier-accent)",
-                                                    color: "var(--text-normal)",
-                                                    fontSize: "12.5px"
-                                                }}
-                                            >
-                                                <option value="">-- None (No Decoration) --</option>
-                                                {filteredDecos.map(item => (
-                                                    <option key={item.asset} value={item.asset}>
-                                                        {item.categoryName ? `[${item.categoryName}] ` : ""}{item.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-
-                                            {/* Preview Circle */}
-                                            <div
-                                                style={{
-                                                    position: "relative",
-                                                    width: "48px",
-                                                    height: "48px",
-                                                    borderRadius: "50%",
-                                                    backgroundColor: "var(--background-secondary)",
+                                                    padding: "10px",
+                                                    borderRadius: "8px",
+                                                    backgroundColor: selectedDeco === "" ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
+                                                    border: selectedDeco === "" ? "2px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
+                                                    cursor: "pointer",
+                                                    textAlign: "center",
                                                     display: "flex",
+                                                    flexDirection: "column",
                                                     alignItems: "center",
                                                     justifyContent: "center",
-                                                    overflow: "visible"
+                                                    minHeight: "100px"
                                                 }}
                                             >
-                                                <span style={{ fontSize: "20px" }}>🐱</span>
-                                                {selectedDeco && (
-                                                    <img
-                                                        src={`https://cdn.discordapp.com/avatar-decoration-presets/${selectedDeco}.png?size=96&passthrough=true`}
-                                                        alt="Decoration"
-                                                        style={{
-                                                            position: "absolute",
-                                                            top: "-5px",
-                                                            left: "-5px",
-                                                            width: "58px",
-                                                            height: "58px",
-                                                            pointerEvents: "none"
-                                                        }}
-                                                    />
-                                                )}
+                                                <span style={{ fontSize: "22px", opacity: 0.5 }}>🚫</span>
+                                                <span style={{ fontSize: "11px", marginTop: "6px", color: "var(--text-muted)" }}>None</span>
                                             </div>
+
+                                            {/* Decoration Cards */}
+                                            {filteredDecos.map(item => {
+                                                const isSel = selectedDeco === item.asset;
+                                                return (
+                                                    <div
+                                                        key={item.asset}
+                                                        onClick={() => {
+                                                            setSelectedDeco(item.asset);
+                                                            localCosmeticsSettings.store.customDecorationAsset = item.asset;
+                                                            localCosmeticsSettings.store.customDecorationSkuId = item.skuId;
+                                                            applyToCurrentUser();
+                                                        }}
+                                                        style={{
+                                                            position: "relative",
+                                                            padding: "10px 8px",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: isSel ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
+                                                            border: isSel ? "2px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
+                                                            cursor: "pointer",
+                                                            textAlign: "center",
+                                                            display: "flex",
+                                                            flexDirection: "column",
+                                                            alignItems: "center"
+                                                        }}
+                                                    >
+                                                        {/* Avatar Frame with preview circle */}
+                                                        <div style={{ position: "relative", width: "48px", height: "48px", marginBottom: "6px" }}>
+                                                            <div style={{ width: "40px", height: "40px", margin: "4px", borderRadius: "50%", backgroundColor: "var(--background-tertiary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                                <span style={{ fontSize: "16px" }}>🐱</span>
+                                                            </div>
+                                                            <img
+                                                                src={`https://cdn.discordapp.com/avatar-decoration-presets/${item.asset}.png?size=96&passthrough=true`}
+                                                                alt={item.name}
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "48px",
+                                                                    height: "48px",
+                                                                    pointerEvents: "none"
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <span style={{ fontSize: "11px", fontWeight: 500, color: isSel ? "var(--header-primary)" : "var(--text-normal)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>
+                                                            {item.name}
+                                                        </span>
+                                                        <span style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                                                            {item.categoryName}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
@@ -836,10 +933,10 @@ function LocalCosmeticsEditor() {
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
                                     <div>
                                         <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--header-primary)" }}>
-                                            Profile Effect (Background Animated Effect)
+                                            Profile Effect (Animated Background)
                                         </div>
                                         <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
-                                            Applies an animated profile background effect across your profile card.
+                                            Visual gallery of all animated background effects for your profile banner.
                                         </div>
                                     </div>
                                     <FormSwitch
@@ -857,33 +954,218 @@ function LocalCosmeticsEditor() {
                                 {enableProfileEffect && (
                                     <div>
                                         {/* Category Filter */}
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                                            <span style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>Category:</span>
-                                            <select
-                                                value={effectCategory}
-                                                onChange={e => setEffectCategory(e.target.value)}
-                                                style={{
-                                                    padding: "5px 8px",
-                                                    borderRadius: "4px",
-                                                    backgroundColor: "var(--background-secondary)",
-                                                    border: "1px solid var(--background-modifier-accent)",
-                                                    color: "var(--text-normal)",
-                                                    fontSize: "12px"
-                                                }}
-                                            >
-                                                {effectCategories.map(c => (
-                                                    <option key={c} value={c}>{c}</option>
-                                                ))}
-                                            </select>
+                                        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+                                            {effectCategories.map(c => (
+                                                <button
+                                                    key={c}
+                                                    type="button"
+                                                    onClick={() => setEffectCategory(c)}
+                                                    style={{
+                                                        padding: "3px 8px",
+                                                        borderRadius: "10px",
+                                                        fontSize: "11px",
+                                                        cursor: "pointer",
+                                                        border: effectCategory === c ? "1px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
+                                                        backgroundColor: effectCategory === c ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
+                                                        color: effectCategory === c ? "var(--header-primary)" : "var(--text-muted)"
+                                                    }}
+                                                >
+                                                    {c}
+                                                </button>
+                                            ))}
                                         </div>
 
-                                        <select
-                                            value={selectedEffect}
-                                            onChange={e => {
-                                                setSelectedEffect(e.target.value);
-                                                localCosmeticsSettings.store.customProfileEffectId = e.target.value;
-                                                applyToCurrentUser();
-                                            }}
+                                        {/* Visual Grid of Effects */}
+                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "10px", maxHeight: "300px", overflowY: "auto", padding: "4px" }}>
+                                            <div
+                                                onClick={() => {
+                                                    setSelectedEffect("");
+                                                    localCosmeticsSettings.store.customProfileEffectId = "";
+                                                    applyToCurrentUser();
+                                                }}
+                                                style={{
+                                                    padding: "12px 8px",
+                                                    borderRadius: "8px",
+                                                    backgroundColor: selectedEffect === "" ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
+                                                    border: selectedEffect === "" ? "2px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
+                                                    cursor: "pointer",
+                                                    textAlign: "center",
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    justifyContent: "center"
+                                                }}
+                                            >
+                                                <span style={{ fontSize: "20px", opacity: 0.5 }}>🚫</span>
+                                                <span style={{ fontSize: "11px", marginTop: "6px", color: "var(--text-muted)" }}>None</span>
+                                            </div>
+
+                                            {filteredEffects.map(item => {
+                                                const isSel = selectedEffect === item.skuId;
+                                                return (
+                                                    <div
+                                                        key={item.skuId}
+                                                        onClick={() => {
+                                                            setSelectedEffect(item.skuId);
+                                                            localCosmeticsSettings.store.customProfileEffectId = item.skuId;
+                                                            applyToCurrentUser();
+                                                        }}
+                                                        style={{
+                                                            padding: "12px 8px",
+                                                            borderRadius: "8px",
+                                                            backgroundColor: isSel ? "rgba(121, 131, 245, 0.2)" : "var(--background-secondary)",
+                                                            border: isSel ? "2px solid var(--brand-500)" : "1px solid var(--background-modifier-accent)",
+                                                            cursor: "pointer",
+                                                            textAlign: "center",
+                                                            display: "flex",
+                                                            flexDirection: "column",
+                                                            alignItems: "center"
+                                                        }}
+                                                    >
+                                                        <span style={{ fontSize: "22px" }}>✨</span>
+                                                        <span style={{ fontSize: "11.5px", fontWeight: 500, color: isSel ? "var(--header-primary)" : "var(--text-normal)", marginTop: "4px" }}>
+                                                            {item.name}
+                                                        </span>
+                                                        <span style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                                                            {item.categoryName}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SUB-TAB 5: THEME & BANNER (ПРОЧЕЕ) */}
+                    {activeSubTab === "theme" && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                            {/* Profile Gradient Colors */}
+                            <div style={{ padding: "12px", backgroundColor: "var(--background-tertiary)", borderRadius: "6px" }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--header-primary)" }}>
+                                            Profile Theme Gradient Colors
+                                        </div>
+                                        <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                                            Set custom dual-color gradient themes for your profile popout and card.
+                                        </div>
+                                    </div>
+                                    <FormSwitch
+                                        title=""
+                                        hideBorder
+                                        value={enableThemeColors}
+                                        onChange={v => {
+                                            setEnableThemeColors(v);
+                                            localCosmeticsSettings.store.enableThemeColors = v;
+                                            applyToCurrentUser();
+                                        }}
+                                    />
+                                </div>
+
+                                {enableThemeColors && (
+                                    <div>
+                                        <div style={{ display: "flex", gap: "14px", alignItems: "center", marginBottom: "12px" }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                <input
+                                                    type="color"
+                                                    value={primaryColor}
+                                                    onChange={e => setPrimaryColor(e.target.value)}
+                                                    style={{ width: "32px", height: "32px", border: "none", borderRadius: "4px", cursor: "pointer", background: "none" }}
+                                                />
+                                                <span style={{ fontSize: "12px", color: "var(--text-normal)" }}>Primary: {primaryColor}</span>
+                                            </div>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                <input
+                                                    type="color"
+                                                    value={accentColor}
+                                                    onChange={e => setAccentColor(e.target.value)}
+                                                    style={{ width: "32px", height: "32px", border: "none", borderRadius: "4px", cursor: "pointer", background: "none" }}
+                                                />
+                                                <span style={{ fontSize: "12px", color: "var(--text-normal)" }}>Accent: {accentColor}</span>
+                                            </div>
+                                            {/* Preview Bar */}
+                                            <div
+                                                style={{
+                                                    flex: 1,
+                                                    height: "32px",
+                                                    borderRadius: "6px",
+                                                    background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
+                                                    border: "1px solid var(--background-modifier-accent)"
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Presets */}
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+                                            <span style={{ fontSize: "11px", color: "var(--text-muted)", marginRight: "4px" }}>
+                                                Palettes:
+                                            </span>
+                                            {THEME_PALETTES.map(p => (
+                                                <button
+                                                    key={p.name}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setPrimaryColor(p.primary);
+                                                        setAccentColor(p.accent);
+                                                        localCosmeticsSettings.store.primaryThemeColor = p.primary;
+                                                        localCosmeticsSettings.store.accentThemeColor = p.accent;
+                                                        applyToCurrentUser();
+                                                    }}
+                                                    style={{
+                                                        padding: "4px 8px",
+                                                        borderRadius: "4px",
+                                                        fontSize: "11px",
+                                                        cursor: "pointer",
+                                                        display: "inline-flex",
+                                                        alignItems: "center",
+                                                        gap: "5px",
+                                                        backgroundColor: "var(--background-secondary)",
+                                                        border: "1px solid var(--background-modifier-accent)",
+                                                        color: "var(--text-normal)"
+                                                    }}
+                                                >
+                                                    <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: `linear-gradient(135deg, ${p.primary}, ${p.accent})` }} />
+                                                    <span>{p.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Custom Profile Banner URL */}
+                            <div style={{ padding: "12px", backgroundColor: "var(--background-tertiary)", borderRadius: "6px" }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--header-primary)" }}>
+                                            Custom Profile Banner (Image or GIF URL)
+                                        </div>
+                                        <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                                            Override your profile banner with any custom image or animated GIF link.
+                                        </div>
+                                    </div>
+                                    <FormSwitch
+                                        title=""
+                                        hideBorder
+                                        value={enableBanner}
+                                        onChange={v => {
+                                            setEnableBanner(v);
+                                            localCosmeticsSettings.store.enableBanner = v;
+                                            applyToCurrentUser();
+                                        }}
+                                    />
+                                </div>
+
+                                {enableBanner && (
+                                    <div>
+                                        <input
+                                            type="text"
+                                            value={customBanner}
+                                            placeholder="https://example.com/banner.gif or image URL"
+                                            onChange={e => setCustomBanner(e.target.value)}
                                             style={{
                                                 width: "100%",
                                                 padding: "8px 10px",
@@ -893,14 +1175,12 @@ function LocalCosmeticsEditor() {
                                                 color: "var(--text-normal)",
                                                 fontSize: "12.5px"
                                             }}
-                                        >
-                                            <option value="">-- None (No Profile Effect) --</option>
-                                            {filteredEffects.map(item => (
-                                                <option key={item.skuId} value={item.skuId}>
-                                                    {item.categoryName ? `[${item.categoryName}] ` : ""}{item.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        />
+                                        {customBanner && (
+                                            <div style={{ marginTop: "8px", maxHeight: "100px", borderRadius: "6px", overflow: "hidden", border: "1px solid var(--background-modifier-accent)" }}>
+                                                <img src={customBanner} alt="Banner Preview" style={{ width: "100%", height: "100px", objectFit: "cover" }} />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
