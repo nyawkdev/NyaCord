@@ -23,6 +23,6 @@ export default definePlugin({
     name: "AudioLimiter",
     description: "Ear protection limiter to prevent deafening audio spikes and loud noises",
     authors: [Devs.Megu],
-    tags: ["Voice", "Utility", "Safety"],
+    tags: ["Voice", "Utility"],
     settings
 });

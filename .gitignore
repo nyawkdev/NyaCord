@@ -10,12 +10,12 @@ node_modules
 *.exe
 *.dll
 *.pdb
+*.syso
 bin/
 obj/
 vencord_installer
 equicord_installer
 nyacord_installer
-installer/
 
 .DS_Store
 

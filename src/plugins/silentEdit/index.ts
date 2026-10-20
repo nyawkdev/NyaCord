@@ -27,7 +27,7 @@ export default definePlugin({
     name: "SilentEdit",
     description: "Removes the (edited) indicator from messages, inspired by stealth clients",
     authors: [Devs.Megu],
-    tags: ["Chat", "Utility", "Stealth"],
+    tags: ["Chat", "Utility", "Privacy"],
     settings,
 
     start() {

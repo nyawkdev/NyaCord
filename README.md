@@ -1,19 +1,24 @@
-# [<img src="./assets/logo.png" width="40" align="left" alt="NyaCord">](https://github.com/nyawkdev/NyaCord) NyaCord
+<p align="center">
+  <img src="./assets/banner.png" alt="NyaCord Banner" width="100%">
+</p>
+
+# [<img src="./assets/logo.png" width="36" align="left" alt="NyaCord">](https://github.com/nyawkdev/NyaCord) NyaCord
 
 [🇷🇺 Читать на русском языке](README.ru.md)
 
 [![Build and Release](https://github.com/nyawkdev/NyaCord/actions/workflows/build.yml/badge.svg)](https://github.com/nyawkdev/NyaCord/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-NyaCord is a cute, powerful, and customizable Discord client modification based on **Equicord** and **Vencord**, featuring over 300+ built-in plugins, runtime user plugin loading, and the **NyaCord Secret** suite.
+NyaCord is a fast, clean, and customizable Discord client modification based on **Equicord** and **Vencord**, featuring over 300+ built-in plugins, runtime user plugin loading, and the **NyaCord Secret** suite.
 
 ---
 
 ## ✨ Features
 
-- **🐾 300+ Built-in Plugins:** Everything from themes, custom CSS, rich presence, utility shortcuts, to audio tweaks.
-- **📁 Runtime UserPlugins:** Drop any custom `.js`, `.ts`, or `.tsx` plugin directly into `%AppData%\NyaCord\userplugins` without needing to recompile the client.
-- **🕵️ NyaCord Secret Suite:** Built-in stealth & power features inspired by underground clients, engineered cleanly with zero tracking or telemetry:
+- **300+ Built-in Plugins:** Everything from themes, custom CSS, rich presence, utility shortcuts, to audio tweaks.
+- **Runtime UserPlugins:** Drop any custom `.js`, `.ts`, or `.tsx` plugin directly into `%AppData%\NyaCord\userplugins` without needing to recompile the client.
+- **Local Profile Cosmetics (Nightcord Visuals):** Freely customize your profile locally with real Discord badges, live-loaded shop avatar decorations, custom display name, username handle, and account creation date.
+- **NyaCord Secret Suite:** Built-in stealth & power features inspired by underground clients, engineered cleanly with zero tracking or telemetry:
   - **SilentTyping:** Type invisibly without sending typing indicator events.
   - **SilentEdit:** Edit messages without the `(edited)` tag.
   - **Anti-Delete (MessageLogger):** Keep deleted and edited messages visible in chat with complete modification history.

@@ -36,7 +36,7 @@ async function onMemberUpdate(event: { guildId: string; user: { id: string }; ni
                 url: Constants.Endpoints.GUILD_MEMBER(event.guildId, "@me"),
                 body: { nick: expectedNick }
             });
-            showToast("AntiNickname: Reverted forced nickname change");
+            showToast({ text: "AntiNickname: Reverted forced nickname change" });
         } catch {
         }
     }
@@ -46,7 +46,7 @@ export default definePlugin({
     name: "AntiNickname",
     description: "Automatically restores your nickname if a moderator resets or changes it",
     authors: [Devs.Megu],
-    tags: ["Utility", "Stealth", "Protection"],
+    tags: ["Utility", "Privacy"],
     settings,
 
     start() {

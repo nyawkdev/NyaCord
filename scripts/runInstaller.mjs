@@ -74,6 +74,28 @@ async function ensureBinary(isGui = false) {
 
     mkdirSync(FILE_DIR, { recursive: true });
 
+    const ext = process.platform === "win32" ? ".exe" : "";
+    const aliasName = isGui ? `NyaCordInstaller${ext}` : `NyaCordInstallerCli${ext}`;
+    const aliasPathInInstaller = join(FILE_DIR, aliasName);
+    const aliasPathInDist = join(DIST_DIR, aliasName);
+    const localInstallerBin = join(BASE_DIR, "installer", aliasName);
+
+    // Prefer local built NyaCord installer binary if available
+    if (existsSync(aliasPathInDist)) {
+        try {
+            copyFileSync(aliasPathInDist, outputFile);
+            copyFileSync(aliasPathInDist, aliasPathInInstaller);
+            return outputFile;
+        } catch { }
+    } else if (existsSync(localInstallerBin)) {
+        try {
+            copyFileSync(localInstallerBin, outputFile);
+            copyFileSync(localInstallerBin, aliasPathInInstaller);
+            copyFileSync(localInstallerBin, aliasPathInDist);
+            return outputFile;
+        } catch { }
+    }
+
     if (!existsSync(outputFile)) {
         console.log(`Downloading ${filename}...`);
         const etag = existsSync(etagFile) ? readFileSync(etagFile, "utf-8") : null;
@@ -103,11 +125,6 @@ async function ensureBinary(isGui = false) {
     }
 
     // Create convenient NyaCord aliases
-    const ext = process.platform === "win32" ? ".exe" : "";
-    const aliasName = isGui ? `NyaCordInstaller${ext}` : `NyaCordInstallerCli${ext}`;
-    const aliasPathInInstaller = join(FILE_DIR, aliasName);
-    const aliasPathInDist = join(DIST_DIR, aliasName);
-
     try {
         copyFileSync(outputFile, aliasPathInInstaller);
         copyFileSync(outputFile, aliasPathInDist);
